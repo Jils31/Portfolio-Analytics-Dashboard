@@ -248,4 +248,59 @@ const getSummary = (req, res) => {
   }
 };
 
-module.exports = { getHoldings, getAllocations, getPerformance, getSummary };
+const getPortfolioOverview = (req, res) => {
+  try {
+    // Initialize totals
+    let totalPortfolioValue = 0;
+    let totalInvestment = 0;
+    let numberOfHoldings = 0;
+
+    // Calculate metrics from holdings data
+    holdings.forEach((stock) => {
+      const { quantity, avgPrice, currentPrice } = stock;
+      
+      // Convert to numbers safely
+      const qty = parseFloat(quantity) || 0;
+      const avgPx = parseFloat(avgPrice) || 0;
+      const currentPx = parseFloat(currentPrice) || 0;
+      
+      // Calculate current value and investment
+      const currentValue = qty * currentPx;
+      const investment = qty * avgPx;
+      
+      totalPortfolioValue += currentValue;
+      totalInvestment += investment;
+      numberOfHoldings++;
+    });
+
+    // Calculate gain/loss
+    const totalGainLoss = totalPortfolioValue - totalInvestment;
+    const totalGainLossPercent = totalInvestment > 0 
+      ? parseFloat(((totalGainLoss / totalInvestment) * 100).toFixed(2))
+      : 0;
+
+    // Prepare response data
+    const overviewData = {
+      totalPortfolioValue: parseFloat(totalPortfolioValue.toFixed(2)),
+      totalInvestment: parseFloat(totalInvestment.toFixed(2)),
+      totalGainLoss: parseFloat(totalGainLoss.toFixed(2)),
+      totalGainLossPercent: totalGainLossPercent,
+      numberOfHoldings: numberOfHoldings
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: overviewData
+    });
+
+  } catch (err) {
+    console.error("Error calculating portfolio overview: ", err);
+    return res.status(500).json({ 
+      success: false,
+      error: "Internal server error",
+      message: "Failed to calculate portfolio overview"
+    });
+  }
+};
+
+module.exports = { getHoldings, getAllocations, getPerformance, getSummary, getPortfolioOverview };

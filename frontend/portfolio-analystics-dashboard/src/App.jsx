@@ -1,16 +1,18 @@
 import './App.css'
-import AssetDistribution from './components/AssetDistribution'
-import HoldingsTable from './components/HoldingsTable'
-import PerformanceChart from './components/PerformanceChart'
-import TopPerformers from './components/TopPerformers'
+import AssetDistribution from './components/portfolio/AssetDistribution'
+import Performance from './components/portfolio/Performance'
+import Holdings from './components/portfolio/HoldingsTable'
+import TopPerformers from './components/portfolio/TopPerformers'
+import PortfolioOverview from './components/portfolio/PortfolioOverview'
 
 function App() {
 
   return (
     <>
+    <PortfolioOverview />
     <AssetDistribution />
-    <HoldingsTable />
-    <PerformanceChart />
+    <Holdings />
+    <Performance />
     <TopPerformers />
     </>
   )
