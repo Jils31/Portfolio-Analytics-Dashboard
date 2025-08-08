@@ -15,7 +15,7 @@ const HoldingsTable = ({ holdings, sortConfig, sortData, formatters }) => {
   ];
 
   return (
-    <div className="bg-blue-500 rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
       {/* Desktop Table */}
       <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
