@@ -6,7 +6,7 @@ const HoldingsCard = ({ holdings, formatters }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {holdings.map((item, index) => (
-        <div key={index} className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <div key={index} className="bg-white rounded-xl shadow-lg border border-gray-400 p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-xl font-bold text-gray-900">{item.symbol}</h3>
