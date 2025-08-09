@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { fetchHoldings } from '../../services/api';
 import HoldingsTable from '../cards/HoldingsTable';
 import HoldingsCard from '../cards/HoldingsCard';
@@ -14,22 +14,24 @@ const Holdings = () => {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
 
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchHoldings();
-        setHoldings(res.data || []);
-        setFilteredHoldings(res.data || []);
-      } catch (err) {
-        console.error('Error fetching holdings:', err);
-        setError('Failed to load holdings data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    getData();
+  const getData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetchHoldings();
+      setHoldings(res.data || []);
+      setFilteredHoldings(res.data || []);
+    } catch (err) {
+      console.error('Error fetching holdings:', err);
+      setError('Failed to load holdings data');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    getData();
+  }, [getData]);
 
   const sortData = (key) => {
     let direction = 'ascending';
@@ -37,6 +39,20 @@ const Holdings = () => {
       direction = 'descending';
     }
 
+    const sorted = [...filteredHoldings].sort((a, b) => {
+      const valA = isNaN(a[key]) ? a[key] : parseFloat(a[key]);
+      const valB = isNaN(b[key]) ? b[key] : parseFloat(b[key]);
+
+      if (valA < valB) return direction === 'ascending' ? -1 : 1;
+      if (valA > valB) return direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredHoldings(sorted);
+    setSortConfig({ key, direction });
+  };
+
+  const quickSort = (key, direction = 'descending') => {
     const sorted = [...filteredHoldings].sort((a, b) => {
       const valA = isNaN(a[key]) ? a[key] : parseFloat(a[key]);
       const valB = isNaN(b[key]) ? b[key] : parseFloat(b[key]);
@@ -58,6 +74,8 @@ const Holdings = () => {
       h.companyName?.toLowerCase().includes(query)
     );
     setFilteredHoldings(filtered);
+    // Reset sort when searching
+    setSortConfig({ key: '', direction: '' });
   };
 
   const formatCurrency = (value) => {
@@ -111,6 +129,7 @@ const Holdings = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setFilteredHoldings(holdings);
+    setSortConfig({ key: '', direction: '' });
   };
 
   const formatters = {
@@ -122,8 +141,21 @@ const Holdings = () => {
   };
 
   const handleRetry = () => {
-    getData()
-  }
+    getData();
+  };
+
+  // Quick sort options - adjust these field names based on your data structure
+  const sortOptions = [
+    { key: 'symbol', label: 'Symbol A-Z', direction: 'ascending' },
+    { key: 'companyName', label: 'Company A-Z', direction: 'ascending' },
+    { key: 'currentPrice', label: 'Highest Price', direction: 'descending' },
+    { key: 'currentPrice', label: 'Lowest Price', direction: 'ascending' },
+    { key: 'totalGainLoss', label: 'Highest Gain', direction: 'descending' },
+    { key: 'totalGainLoss', label: 'Highest Loss', direction: 'ascending' },
+    { key: 'totalGainLossPercent', label: 'Best Performance %', direction: 'descending' },
+    { key: 'value', label: 'Highest Value', direction: 'descending' },
+    { key: 'quantity', label: 'Most Shares', direction: 'descending' },
+  ];
 
   if (loading) {
     return (
@@ -175,6 +207,16 @@ const Holdings = () => {
               value={searchQuery}
               onChange={handleSearch}
             />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
           
           {/* View Toggle */}
@@ -209,6 +251,28 @@ const Holdings = () => {
         </div>
       </div>
 
+      {/* Quick Sort Options */}
+      {filteredHoldings.length > 0 && (
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm font-medium text-gray-600 py-2 pr-2">Sort by:</span>
+            {sortOptions.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => quickSort(option.key, option.direction)}
+                className={`px-3 py-2 text-sm rounded-lg border transition-all duration-200 ${
+                  sortConfig.key === option.key && sortConfig.direction === option.direction
+                    ? 'bg-blue-500 text-white border-blue-500 shadow-md'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600 hover:shadow-sm'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Render appropriate view */}
       {viewMode === 'table' ? (
         <HoldingsTable 
@@ -221,6 +285,8 @@ const Holdings = () => {
         <HoldingsCard 
           holdings={filteredHoldings}
           formatters={formatters}
+          sortConfig={sortConfig}
+          sortData={sortData}
         />
       )}
 
