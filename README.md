@@ -22,6 +22,9 @@ It provides a complete view of portfolio performance, asset allocation, and stoc
 - Calculates portfolio performance, gains/losses, diversification score, and sector/market cap distribution.  
 - Endpoints return pre-formatted data ready for frontend rendering.
 
+### Backend Deployed on render : https://portfolio-analytics-dashboard-bwhm.onrender.com
+### Frontend Deployed on vercel : https://portfolio-analytics-dashboard-xi.vercel.app/
+
 ---
 
 ## 🗂 Project Structure
